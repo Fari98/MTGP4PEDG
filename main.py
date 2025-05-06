@@ -72,7 +72,7 @@ for loader in [
                 HDBSCAN(),
                 generations=50,
                 elitism=True,
-                dataset_name='concrete_strength',
+                dataset_name=dataset,
                 log=1,
                 log_path = 'log/first_experiment.csv',
                 verbose=1,
