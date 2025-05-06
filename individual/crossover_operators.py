@@ -1,0 +1,22 @@
+import random
+from tree.crossover_operators import crossover_trees
+from tree.tree import Tree
+from individual.individual import Individual
+
+def uniform_crossover(p1, p2):
+
+    mask = [random.choice([0,1]) for _ in range(p1.lenght)]
+
+    return (Individual([p1.representations[i] if mask[i] == 1 else p2.representations[i] for i in range(len(mask))]),
+            Individual([p2.representations[i] if mask[i] == 1 else p1.representations[i] for i in range(len(mask))]))
+
+def element_wise_crossover(p1, p2):
+
+    xo = crossover_trees(Tree.FUNCTIONS)
+
+    offs = [(xo(p1.representations[i], p2.representations[i],
+               p1.trees[i].size, p2.trees[i].size)) for i in range(p1.lenght)]
+
+    off1, off2 = zip(*offs)
+
+    return Individual(off1), Individual(off2)
