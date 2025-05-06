@@ -156,4 +156,12 @@ def evaluate_dataset(real_space, synthetic_space, learning_techniques, clusterin
 
     return utility, float(np.sum(max_class_counts))
 
+def non_zero_floor_division(a, b):
+
+    if a < b:
+        return 1
+    else:
+        return a // b
+
+
 

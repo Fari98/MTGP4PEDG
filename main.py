@@ -16,17 +16,23 @@ from tree.tree import Tree
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.cluster import HDBSCAN
+from utils.utils import non_zero_floor_division
 
 # loader = load_concrete_strength
 
-for loader in [load_concrete_strength, load_boston, load_airfoil, load_bioav]:
+for loader in [
+    # load_concrete_strength,
+    #            load_boston,
+    load_airfoil,
+    # load_bioav
+]:
 
     real_space = torch.from_numpy(loader(X_y=False).values)
     dataset = loader.__name__.split("load_")[-1]
 
-    uniform_half = torch.rand((real_space.shape[0], real_space.shape[1] // 8)) * 2 - 1  # Scaled to [-1, 1]
+    uniform_half = torch.rand((real_space.shape[0], non_zero_floor_division(real_space.shape[1], 8))) * 2 - 1  # Scaled to [-1, 1]
     # Half from Gaussian N(0, 1)
-    gaussian_half = torch.randn((real_space.shape[0], real_space.shape[1] // 8))
+    gaussian_half = torch.randn((real_space.shape[0], non_zero_floor_division(real_space.shape[1], 8)))
     # Concatenate along columns
     latent_space = torch.cat([uniform_half, gaussian_half], dim=1)
 
