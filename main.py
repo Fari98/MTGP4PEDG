@@ -23,11 +23,18 @@ for loader in [load_concrete_strength, load_boston, load_airfoil, load_bioav]:
 
     real_space = torch.from_numpy(loader(X_y=False).values)
     dataset = loader.__name__.split("load_")[-1]
-    latent_space = torch.distributions.multivariate_normal.MultivariateNormal(
-        loc=torch.zeros(2),
-        covariance_matrix=torch.eye(2)).sample([real_space.shape[0]])
 
-    for seed in range(10):
+    uniform_half = torch.rand((real_space.shape[0], real_space.shape[1] // 8)) * 2 - 1  # Scaled to [-1, 1]
+    # Half from Gaussian N(0, 1)
+    gaussian_half = torch.randn((real_space.shape[0], real_space.shape[1] // 8))
+    # Concatenate along columns
+    latent_space = torch.cat([uniform_half, gaussian_half], dim=1)
+
+    # latent_space = torch.distributions.multivariate_normal.MultivariateNormal(
+    #     loc=torch.zeros(int(real_space.shape[1]/4)),
+    #     covariance_matrix=torch.eye(int(real_space.shape[1]/4))).sample([real_space.shape[0]])
+
+    for seed in range(5):
 
         torch.manual_seed(seed)
         np.random.seed(seed)
