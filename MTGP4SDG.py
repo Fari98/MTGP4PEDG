@@ -86,7 +86,7 @@ class MTGP4SDG:
                    timing,
                    [[individual.utility for individual in self.elites],
                     [individual.disclosure_averseness for individual in self.elites],
-                    [individual.representations for individual in self.elites]
+                    # [individual.representations for individual in self.elites]
                     ],
                    self.seed)
 
