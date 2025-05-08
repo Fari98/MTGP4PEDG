@@ -74,7 +74,7 @@ for loader in [
                 crossover = uniform_crossover,
                 p_m=0.2,
                 p_xo=0.8,
-                pop_size=20,
+                pop_size=50,
                 seed=seed)
 
 
@@ -83,7 +83,7 @@ for loader in [
                 latent_space,
                 [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
                 HDBSCAN(),
-                generations=50,
+                generations=100,
                 elitism=True,
                 dataset_name=dataset,
                 log=2,
