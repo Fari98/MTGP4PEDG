@@ -1,6 +1,29 @@
 import os
 import csv
 
+
+def get_log_info(population, log):
+    if log == 1:
+        return [
+         [individual.inutility for individual in population.elites],
+         [individual.disclosure_averseness for individual in population.elites],
+         ]
+    elif log == 2:
+
+        return [
+         [individual.inutility for individual in population.elites],
+         [individual.disclosure_averseness for individual in population.elites],
+         [individual.full_perf1 for individual in population.elites]
+         ]
+
+    else:
+        return [
+         [individual.inutility for individual in population.elites],
+         [individual.disclosure_averseness for individual in population.elites],
+         [individual.representations for individual in population.elites]
+         ]
+
+
 def logger(
     path: str,
     generation: int,
@@ -84,7 +107,7 @@ def verbose_reporter(
             "----------------------------------------------------------------------------------------------------------------------"
         )
         print(
-            "|         Dataset         |  Generation  |        Utility        |         DiscAvers        |        "
+            "|         Dataset         |  Generation  |        Inutility        |         DiscAvers        |        "
             "Timing          |"
         )
         print(

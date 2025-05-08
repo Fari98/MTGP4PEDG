@@ -12,8 +12,10 @@ class Population:
         self.fronts = None
         self.crowding_distances = None
 
-    def evaluate(self, real_space, latent_space,
-                learning_techniques, clustering_technique, n_jobs=1):
+    def evaluate(self, real_space, real_res, latent_space,
+                learning_techniques, clustering_technique,
+                 full_results = False,
+                 n_jobs=1):
         """
         Evaluates the population given a certain fitness function, input data (X), and target data (y).
 
@@ -35,21 +37,42 @@ class Population:
         None
         """
         # Evaluates individuals' semantics
-        fitness_values = Parallel(n_jobs=n_jobs)(
-            delayed(_evaluate_individual)(
-                individual, real_space, latent_space,
-                learning_techniques, clustering_technique
-            ) for individual in self.individuals
-        )
+        if full_results:
+            fitness_values = Parallel(n_jobs=n_jobs)(
+                delayed(_evaluate_individual)(
+                    individual, real_space, real_res,  latent_space,
+                    learning_techniques, clustering_technique,
+                    full_results
+                ) for individual in self.individuals
+            )
 
-        self.utilities = [fitness[0] for fitness in fitness_values]
-        self.disclosure_aversenesses = [fitness[1] for fitness in fitness_values]
+            self.inutilities = [fitness[0] for fitness in fitness_values]
+            self.disclosure_aversenesses = [fitness[1] for fitness in fitness_values]
 
-        self.fitness_values = fitness_values
+            self.fitness_values = [(fit[0], fit[1]) for fit in fitness_values]
 
-        # Assign individuals' fitness
-        [self.individuals[i].__setattr__('utility', u) for i, u in enumerate(self.utilities)]
-        [self.individuals[i].__setattr__('disclosure_averseness', da) for i, da in enumerate(self.disclosure_aversenesses)]
+            # Assign individuals' fitness
+            [self.individuals[i].__setattr__('inutility', u) for i, u in enumerate(self.inutilities)]
+            [self.individuals[i].__setattr__('disclosure_averseness', da) for i, da in
+             enumerate(self.disclosure_aversenesses)]
+            [self.individuals[i].__setattr__('full_perf1', f[2]) for i, f in enumerate(fitness_values)]
+
+        else:
+            fitness_values = Parallel(n_jobs=n_jobs)(
+                delayed(_evaluate_individual)(
+                    individual, real_space, latent_space,
+                    learning_techniques, clustering_technique
+                ) for individual in self.individuals
+            )
+
+            self.inutilities = [fitness[0] for fitness in fitness_values]
+            self.disclosure_aversenesses = [fitness[1] for fitness in fitness_values]
+
+            self.fitness_values = fitness_values
+
+            # Assign individuals' fitness
+            [self.individuals[i].__setattr__('inutility', u) for i, u in enumerate(self.inutilities)]
+            [self.individuals[i].__setattr__('disclosure_averseness', da) for i, da in enumerate(self.disclosure_aversenesses)]
 
 
 

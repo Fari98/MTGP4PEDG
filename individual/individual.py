@@ -5,7 +5,7 @@ from individual.utils import _evaluate_individual
 
 class Individual:
 
-    def __init__(self, representations, utility = None, disclosure_averseness = None,
+    def __init__(self, representations, inutility = None, disclosure_averseness = None,
                                         # utility_test = None, disclosure_averseness_test = None #todo check wheter to include
                  ):
 
@@ -15,7 +15,7 @@ class Individual:
 
         self.lenght = len(representations)
 
-        self.utility = utility
+        self.inutility = inutility
         self.discolsure_averseness = disclosure_averseness
 
         # todo nodes depth information ??
@@ -26,11 +26,17 @@ class Individual:
         return torch.concatenate([tree.predict(latent_space).unsqueeze(1) for tree in self.trees], dim=1)
 
 
-    def evaluate(self, real_space, latent_space, learning_techniques, clustering_technique):
+    def evaluate(self, real_space, latent_space, learning_techniques, clustering_technique, full_results = False):
 
-        if self.utility is None and self.discolsure_averseness is None:
+        if self.inutility is None and self.discolsure_averseness is None:
 
-           self.utility, self.discolsure_averseness = _evaluate_individual(real_space, latent_space,
+            if full_results:
+                self.inutility, self.discolsure_averseness, self.full_perf1 = _evaluate_individual(real_space, latent_space,
+                                                                                  learning_techniques,
+                                                                                  clustering_technique,
+                                                                                  full_results)
+            else:
+                self.inutility, self.discolsure_averseness = _evaluate_individual(real_space, latent_space,
                                                                            learning_techniques, clustering_technique)
 
 

@@ -1,16 +1,16 @@
 from collections import defaultdict
 import numpy as np
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 import torch
 
 def get_pareto_rankings(population):
     """
     Computes and assigns Pareto front ranks to individuals in the population.
-    Minimizes both utility and disclosure_averseness.
+    Minimizes both inutility and disclosure_averseness.
 
     Args:
         population: An object with a .individuals list. Each individual must have:
-                    - .utility
+                    - .inutility
                     - .disclosure_averseness
                     - .front (will be set here)
 
@@ -26,9 +26,9 @@ def get_pareto_rankings(population):
 
     def dominates(a, b):
         return (
-            a.utility <= b.utility and
+            a.inutility <= b.inutility and
             a.disclosure_averseness <= b.disclosure_averseness and
-            (a.utility < b.utility or a.disclosure_averseness < b.disclosure_averseness)
+            (a.inutility < b.inutility or a.disclosure_averseness < b.disclosure_averseness)
         )
 
     while remaining:
@@ -61,7 +61,7 @@ def calculate_crowding_distances(population):
     """
     Assigns crowding distances to each Individual instance in the population.
     Each individual must have attributes:
-    - utility
+    - inutility
     - disclosure_averseness
     - front (Pareto front index)
 
@@ -86,7 +86,7 @@ def calculate_crowding_distances(population):
         for ind in front_individuals:
             ind.crowding_distance = 0.0
 
-        objectives = ['utility', 'disclosure_averseness']
+        objectives = ['inutility', 'disclosure_averseness']
 
         for obj in objectives:
             # Sort individuals by the objective
@@ -109,17 +109,22 @@ def calculate_crowding_distances(population):
                 if front_individuals[i].crowding_distance != float('inf'):
                     front_individuals[i].crowding_distance += distance
 
-def evaluate_dataset(real_space, synthetic_space, learning_techniques, clustering_technique):
+def evaluate_dataset(real_space, real_res, synthetic_space, learning_techniques, clustering_technique, return_full_results = False):
 
 
-    real_res = torch.median(torch.from_numpy(np.array([cross_validate(tech, real_space[:, :-1], real_space[:, -1], cv=5,
+    # real_results =  torch.from_numpy(np.array([cross_val_score(tech, real_space[:, :-1], real_space[:, -1], cv=5,
+    #                                                               scoring='r2'
+    #                                                               ) for tech in learning_techniques]))
+    # real_res = torch.mean(real_results)
+
+    # StratifiedKFold(n_splits=5, shuffle=True) #to change across runs, otherwise fixed
+    synthetic_results = torch.from_numpy(np.array([cross_val_score(tech, synthetic_space[:, :-1], synthetic_space[:, -1], cv=5,
                                                                   scoring='r2'
-                                                                  )['test_score'] for tech in learning_techniques])))
-    syn_res = torch.median(torch.from_numpy(np.array([cross_validate(tech, synthetic_space[:, :-1], synthetic_space[:, -1], cv=5,
-                                                                  scoring='r2'
-                                                                  )['test_score'] for tech in learning_techniques])))
+                                                                  ) for tech in learning_techniques]))
 
-    utility = torch.abs(torch.sub(syn_res, real_res)).item()
+    syn_res = torch.mean(synthetic_results)
+
+    inutility = torch.abs(torch.sub(syn_res, real_res)).item()
 
     complete_dataset = torch.concatenate(
         (torch.concatenate((synthetic_space, torch.zeros((synthetic_space.shape[0], 1))), dim=1),
@@ -154,7 +159,13 @@ def evaluate_dataset(real_space, synthetic_space, learning_techniques, clusterin
         # Compute the term for this label
         max_class_counts.append((group_size / total_samples) * ((max_count / group_size) - 0.5))
 
-    return utility, float(np.sum(max_class_counts))
+    if return_full_results:
+
+        return inutility, float(np.sum(max_class_counts)), synthetic_results.tolist()
+
+    else:
+
+        return inutility, float(np.sum(max_class_counts))
 
 def non_zero_floor_division(a, b):
 
@@ -162,6 +173,35 @@ def non_zero_floor_division(a, b):
         return 1
     else:
         return a // b
+
+import torch
+
+def sample_with_constant_handling(real_space):
+    min_vals, _ = torch.min(real_space, dim=0)
+    max_vals, _ = torch.max(real_space, dim=0)
+
+    # Identify constant columns where min == max
+    constant_mask = (min_vals == max_vals)
+
+    # For non-constant columns only, create a Uniform distribution
+    varying_min = min_vals[~constant_mask]
+    varying_max = max_vals[~constant_mask]
+
+    # Sample for non-constant columns
+    uniform = torch.distributions.Uniform(varying_min, varying_max)
+    sampled = uniform.sample([real_space.shape[0]])
+
+    # Initialize random_space with same shape as real_space
+    random_space = torch.empty_like(real_space)
+
+    # Fill in sampled values for varying columns
+    random_space[:, ~constant_mask] = sampled
+
+    # Copy over constant columns from original data
+    random_space[:, constant_mask] = real_space[:, constant_mask]
+
+    return random_space
+
 
 
 

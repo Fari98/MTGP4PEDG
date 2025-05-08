@@ -3,7 +3,7 @@ import time
 import numpy as np
 import torch
 
-from utils.info import logger, verbose_reporter
+from utils.info import logger, verbose_reporter, get_log_info
 
 from population.population import Population
 
@@ -40,6 +40,7 @@ class MTGP4SDG:
     def solve(
         self,
         real_space,
+        real_res,
         latent_space,
         learning_techniques,
         clustering_technique,
@@ -69,8 +70,10 @@ class MTGP4SDG:
         self.population = Population(self.initializer(self.pop_size))
 
         # evaluating the intial population
-        self.population.evaluate(real_space, latent_space,
-                            learning_techniques, clustering_technique, n_jobs)
+        self.population.evaluate(real_space, real_res, latent_space,
+                            learning_techniques, clustering_technique,
+                            full_results= (log == 2),
+                            n_jobs = n_jobs)
 
         end = time.time()
 
@@ -81,13 +84,11 @@ class MTGP4SDG:
         timing = end-start
 
         if log != 0:
+
             logger(log_path,
                    0,
                    timing,
-                   [[individual.utility for individual in self.elites],
-                    [individual.disclosure_averseness for individual in self.elites],
-                    # [individual.representations for individual in self.elites]
-                    ],
+                   [dataset_name] + get_log_info(self, log),
                    self.seed)
 
         # displaying the results on console if verbose level is not 0
@@ -95,7 +96,7 @@ class MTGP4SDG:
             verbose_reporter(
                 dataset_name,
                 0,
-                min([individual.utility for individual in self.elites]),
+                min([individual.inutility for individual in self.elites]),
                 min([individual.disclosure_averseness for individual in self.elites]),
                 timing
             )
@@ -133,8 +134,11 @@ class MTGP4SDG:
             if elitism:
                 [individual.__setattr__('front', None) for individual in self.population.individuals]
 
-            self.population.evaluate(real_space, latent_space,
-                            learning_techniques, clustering_technique, n_jobs)
+            self.population.evaluate(real_space,  real_res,
+                                     latent_space,
+                                     learning_techniques, clustering_technique,
+                                     full_results=(log == 2),
+                                     n_jobs=n_jobs)
 
             # getting the new elite(s)
             self.elites = self.population.find_elites()
@@ -144,13 +148,11 @@ class MTGP4SDG:
             timing = end - start
 
             if log != 0:
+
                 logger(log_path,
                        generation,
                        timing,
-                       [[individual.utility for individual in self.elites],
-                        [individual.disclosure_averseness for individual in self.elites],
-                        # [individual.representations for individual in self.elites]
-                        ],
+                       [dataset_name] + get_log_info(self, log),
                        self.seed)
 
             # displaying the results on console if verbose level is not 0
@@ -158,7 +160,7 @@ class MTGP4SDG:
                 verbose_reporter(
                     dataset_name,
                     generation,
-                    min([individual.utility for individual in self.elites]),
+                    min([individual.inutility for individual in self.elites]),
                     min([individual.disclosure_averseness for individual in self.elites]),
                     timing
                 )
