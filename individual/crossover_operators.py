@@ -15,7 +15,7 @@ def element_wise_crossover(p1, p2):
     xo = crossover_trees(Tree.FUNCTIONS)
 
     offs = [(xo(p1.representations[i], p2.representations[i],
-               p1.trees[i].size, p2.trees[i].size)) for i in range(p1.lenght)]
+               p1.trees[i].nodes, p2.trees[i].nodes)) for i in range(p1.lenght)]
 
     off1, off2 = zip(*offs)
 
