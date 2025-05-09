@@ -2,22 +2,22 @@ import os
 import csv
 
 
-def get_log_info(population, log):
+def get_log_info(optimizer, log):
 
     base_log = [
-          population.nodes,
-         [individual.inutility for individual in population.elites],
-         [individual.disclosure_averseness for individual in population.elites],
+          optimizer.population.nodes,
+         [individual.inutility for individual in optimizer.elites],
+         [individual.disclosure_averseness for individual in optimizer.elites],
          ]
 
     if log == 1:
         return base_log
     elif log == 2:
 
-        return base_log + [[individual.full_perf1 for individual in population.elites]]
+        return base_log + [[individual.full_perf1 for individual in optimizer.elites]]
 
     else:
-        return base_log + [[individual.representations for individual in population.elites]]
+        return base_log + [[individual.representations for individual in optimizer.elites]]
 
 
 
