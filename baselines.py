@@ -1,4 +1,5 @@
-from utils.utils import evaluate_dataset, sample_with_constant_handling
+from utils.utils import evaluate_dataset, sample_with_constant_handling, smape
+from sklearn.metrics import make_scorer
 from datasets.data_loader import load_concrete_strength
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
@@ -11,6 +12,8 @@ import random
 from datasets.data_loader import load_concrete_strength, load_bioav, load_airfoil, load_boston
 from sklearn.model_selection import cross_val_score
 from xgboost import XGBRegressor
+
+smape_score = make_scorer(smape)
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -34,7 +37,7 @@ for loader in [
 
         print(str(tech))
 
-        cv = cross_val_score(tech, real_space[:,:-1], real_space[:,-1], cv = 5)
+        cv = cross_val_score(tech, real_space[:,:-1], real_space[:,-1], cv = 5, scoring=smape_score)
 
         print(cv)
         # print(cv['score_time'])

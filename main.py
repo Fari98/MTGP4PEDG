@@ -19,7 +19,7 @@ from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.svm import SVR
 from sklearn.cluster import HDBSCAN
-from utils.utils import non_zero_floor_division
+from utils.utils import non_zero_floor_division, smape_score
 
 # loader = load_concrete_strength
 
@@ -41,7 +41,7 @@ for loader in [
 
     real_res = []
     for tech in [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()]:
-        real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = 'r2', cv = 5))
+        real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = smape_score, cv = 5))
 
     real_res = torch.mean(torch.from_numpy(np.array(real_res)))
 
@@ -74,7 +74,7 @@ for loader in [
                 crossover = uniform_crossover,
                 p_m=0.2,
                 p_xo=0.8,
-                pop_size=50,
+                pop_size=20,
                 seed=seed)
 
 
@@ -87,6 +87,6 @@ for loader in [
                 elitism=True,
                 dataset_name=dataset,
                 log=2,
-                log_path = 'log/second_experiments.csv',
+                log_path = 'log/third_experiment.csv',
                 verbose=1,
                 n_jobs = -1)

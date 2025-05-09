@@ -1,6 +1,7 @@
 from collections import defaultdict
 import numpy as np
 from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.metrics import make_scorer
 import torch
 
 def get_pareto_rankings(population):
@@ -119,7 +120,7 @@ def evaluate_dataset(real_space, real_res, synthetic_space, learning_techniques,
 
     # StratifiedKFold(n_splits=5, shuffle=True) #to change across runs, otherwise fixed
     synthetic_results = torch.from_numpy(np.array([cross_val_score(tech, synthetic_space[:, :-1], synthetic_space[:, -1], cv=5,
-                                                                  scoring='r2'
+                                                                  scoring=smape_score
                                                                   ) for tech in learning_techniques]))
 
     syn_res = torch.mean(synthetic_results)
@@ -202,6 +203,19 @@ def sample_with_constant_handling(real_space):
 
     return random_space
 
+def smape(actual, predicted) -> float:
+
+	# Convert actual and predicted to numpy
+	# array data type if not already
+	if not all([isinstance(actual, np.ndarray), isinstance(predicted, np.ndarray)]):
+		actual, predicted = np.array(actual), np.array(predicted)
+
+	return  np.mean(
+			np.abs(predicted - actual) /
+			((np.abs(predicted) + np.abs(actual))/2)
+		)
+
+smape_score = make_scorer(smape)
 
 
 
