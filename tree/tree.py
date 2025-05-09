@@ -46,7 +46,7 @@ class Tree:
         self.depth = tree_depth(Tree.FUNCTIONS)(repr_)
         self.fitness = None
         # self.test_fitness = None
-        self.size = len(list(flatten(self.repr_)))
+        self.nodes = len(list(flatten(self.repr_)))
 
     def predict(self, X):
         """

@@ -9,6 +9,8 @@ class Population:
         self.individuals = individuals
         self.size = len(individuals)
 
+        self.nodes = sum([ind.nodes for ind in self.individuals])
+
         self.fronts = None
         self.crowding_distances = None
 

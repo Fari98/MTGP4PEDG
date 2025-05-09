@@ -13,6 +13,8 @@ class Individual:
         self.trees = [Tree(tree) if not isinstance(tree, Tree) else tree for tree in representations]
         self.representations = [tree.repr_ if isinstance(tree, Tree) else tree for tree in representations]
 
+        self.nodes = sum([tree.nodes for tree in self.trees])
+
         self.lenght = len(representations)
 
         self.inutility = inutility

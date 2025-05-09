@@ -3,25 +3,22 @@ import csv
 
 
 def get_log_info(population, log):
-    if log == 1:
-        return [
+
+    base_log = [
+          population.nodes,
          [individual.inutility for individual in population.elites],
          [individual.disclosure_averseness for individual in population.elites],
          ]
+
+    if log == 1:
+        return base_log
     elif log == 2:
 
-        return [
-         [individual.inutility for individual in population.elites],
-         [individual.disclosure_averseness for individual in population.elites],
-         [individual.full_perf1 for individual in population.elites]
-         ]
+        return base_log + [[individual.full_perf1 for individual in population.elites]]
 
     else:
-        return [
-         [individual.inutility for individual in population.elites],
-         [individual.disclosure_averseness for individual in population.elites],
-         [individual.representations for individual in population.elites]
-         ]
+        return base_log + [[individual.representations for individual in population.elites]]
+
 
 
 def logger(
