@@ -101,7 +101,7 @@ for loader in [
                 log=1,
                 log_path = f'log/evolution_{day}.csv',
                 verbose=1,
-                n_jobs = -1)
+                n_jobs = -2)
 
         if generator.log > 0:
 
@@ -112,6 +112,7 @@ for loader in [
                 writer = csv.writer(file)
                 writer.writerow([seed, dataset] + [individual.representations for individual in generator.elites])
 
-            os.mkdir(os.path.dirname(f'log/{day}'))
+            if not os.path.isdir(f'log/{day}'):
+                os.mkdir(f'log/{day}')
             [individual.predict(latent_space).to_csv(f'log/{day}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
 
