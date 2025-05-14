@@ -2,6 +2,8 @@ from collections import defaultdict
 import numpy as np
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import make_scorer
+from sklearn.utils._testing import ignore_warnings
+from sklearn.exceptions import ConvergenceWarning
 import torch
 
 def get_pareto_rankings(population):
@@ -110,6 +112,7 @@ def calculate_crowding_distances(population):
                 if front_individuals[i].crowding_distance != float('inf'):
                     front_individuals[i].crowding_distance += distance
 
+@ignore_warnings(category=ConvergenceWarning)
 def evaluate_dataset(real_space, real_res, synthetic_space, learning_techniques, clustering_technique, return_full_results = False):
 
 
