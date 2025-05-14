@@ -44,6 +44,7 @@ class MTGP4SDG:
         latent_space,
         learning_techniques,
         clustering_technique,
+        max_depth = 17,
         generations=20,
         elitism=True,
         dataset_name=None,
@@ -59,6 +60,8 @@ class MTGP4SDG:
         ----------
 
         """
+
+        self.log = log
         # setting the seeds
         torch.manual_seed(self.seed)
         np.random.seed(self.seed)
@@ -72,7 +75,7 @@ class MTGP4SDG:
         # evaluating the intial population
         self.population.evaluate(real_space, real_res, latent_space,
                             learning_techniques, clustering_technique,
-                            full_results= (log == 2),
+                            full_results = (log == 2),
                             n_jobs = n_jobs)
 
         end = time.time()
@@ -115,14 +118,14 @@ class MTGP4SDG:
                 if random.random() < self.p_m:
 
                     parent = self.selector(self.population)
-                    offspring = self.mutator(parent)
+                    offspring = self.mutator(parent, max_depth)
 
                     offs_pop.append(offspring)
 
                 else:
 
                     p1, p2 = self.selector(self.population), self.selector(self.population)
-                    offs1, offs2 = self.crossover(p1, p2)
+                    offs1, offs2 = self.crossover(p1, p2, max_depth)
 
                     offs_pop.extend([offs1, offs2])
 

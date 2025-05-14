@@ -29,35 +29,44 @@ for loader in [
     print(loader.__name__.split("load_")[-1])
 
     real_space = torch.from_numpy(loader(X_y = False).values)
+
     # random_space = torch.randn(real_space.shape)
     # random_space = real_space[:,:-1] + torch.randn(real_space[:,:-1].shape)
     # random_space = torch.concatenate((random_space, real_space[:,-1].unsqueeze(1)), dim = 1)
 
-    for tech in [RandomForestRegressor(), SVR(), LinearRegression(), DecisionTreeRegressor(), XGBRegressor()]:
+    # for tech in [RandomForestRegressor(), SVR(), LinearRegression(), DecisionTreeRegressor(), XGBRegressor()]:
 
-        print(str(tech))
-
-        cv = cross_val_score(tech, real_space[:,:-1], real_space[:,-1], cv = 5, scoring=smape_score)
-
-        print(cv)
+        # print(str(tech))
+        #
+        # cv = cross_val_score(tech, real_space[:,:-1], real_space[:,-1], cv = 5, scoring=smape_score)
+        #
+        # print(cv)
         # print(cv['score_time'])
 
     # random_space = real_space[:,:-1] + torch.var(real_space[:,:-1], dim = 0)*torch.randn(real_space[:,:-1].shape)
     # random_space = torch.concatenate((random_space, torch.randn(real_space[:,-1].shape).unsqueeze(1)), dim = 1)
 
-    # random_space = sample_with_constant_handling(real_space)
-    #
-    #
-    # max_utility = evaluate_dataset(real_space=real_space,
-    #                         synthetic_space=real_space,
-    #                         learning_techniques=[RandomForestRegressor(), SVR()],
-    #                         clustering_technique=HDBSCAN())
-    #
-    # max_da = evaluate_dataset(real_space=real_space,
-    #                         synthetic_space=random_space,
-    #                         learning_techniques=[RandomForestRegressor(), SVR()],
-    #                         clustering_technique=HDBSCAN())
-    #
-    # results[loader.__name__.split("load_")[-1]] = [max_utility, max_da]
+    random_space = sample_with_constant_handling(real_space)
+
+    real_res = []
+    for tech in [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()]:
+        real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = smape_score, cv = 5))
+
+    real_res = torch.mean(torch.from_numpy(np.array(real_res)))
+
+
+    max_utility = evaluate_dataset(real_space=real_space,
+                            synthetic_space=real_space,
+                            learning_techniques=[RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
+                            clustering_technique=HDBSCAN(),
+                                   real_res = real_res)
+
+    max_da = evaluate_dataset(real_space=real_space,
+                            synthetic_space=random_space,
+                            learning_techniques=[RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
+                            clustering_technique=HDBSCAN(),
+                              real_res = real_res)
+
+    results[loader.__name__.split("load_")[-1]] = [max_utility, max_da]
 
 print(results)

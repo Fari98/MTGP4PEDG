@@ -8,6 +8,7 @@ def get_log_info(optimizer, log):
           optimizer.population.nodes,
          [individual.inutility for individual in optimizer.elites],
          [individual.disclosure_averseness for individual in optimizer.elites],
+         [individual.nodes for individual in optimizer.elites]
          ]
 
     if log == 1:

@@ -1,7 +1,7 @@
 import random
 
 import numpy as np
-from tree.utils import create_grow_random_tree, random_subtree, substitute_subtree
+from tree.utils import create_grow_random_tree, random_subtree, substitute_subtree, tree_depth
 
 
 # Function to perform mutation on a tree.
@@ -139,7 +139,7 @@ def mutate_tree_node(max_depth, TERMINALS, CONSTANTS, FUNCTIONS, p_c):
     return m_tn
 
 
-def mutate_tree_subtree(max_depth, TERMINALS, CONSTANTS, FUNCTIONS, p_c):
+def mutate_tree_subtree(max_depth, TERMINALS, CONSTANTS, FUNCTIONS, p_c, max_allowed_depth = None):
     """
     Generates a function for performing subtree mutation within a tree representation.
 
@@ -226,7 +226,29 @@ def mutate_tree_subtree(max_depth, TERMINALS, CONSTANTS, FUNCTIONS, p_c):
             new_tree1 = subtree_substitution(
                 tree1, mutation_point, new_subtree
             )
-            return new_tree1
+
+            if (max_allowed_depth is not None):
+                counter = 1
+                while ( (tree_depth(FUNCTIONS)(new_tree1) > max_allowed_depth) and
+                       (counter < 10)):
+                    if isinstance(tree1, tuple):  # if the tree is a base (gp) tree
+                        mutation_point = random_subtree_picker(
+                            tree1, num_of_nodes=num_of_nodes
+                        )
+                        # gettubg a bew subtree
+                        new_subtree = create_grow_random_tree(
+                            max_depth, FUNCTIONS, TERMINALS, CONSTANTS, p_c=p_c
+                        )
+                        # replacing the tree in mutation point for the new substring
+                        new_tree1 = subtree_substitution(
+                            tree1, mutation_point, new_subtree
+                        )
+                    counter += 1
+
+                return new_tree1 if tree_depth(FUNCTIONS)(new_tree1) <= max_allowed_depth else tree1
+            else:
+                return new_tree1
+
         else:
             return tree1 # if tree1 is a terminal
     return inner_mut

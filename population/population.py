@@ -62,7 +62,7 @@ class Population:
         else:
             fitness_values = Parallel(n_jobs=n_jobs)(
                 delayed(_evaluate_individual)(
-                    individual, real_space, latent_space,
+                    individual, real_space, real_res, latent_space,
                     learning_techniques, clustering_technique
                 ) for individual in self.individuals
             )

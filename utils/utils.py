@@ -212,7 +212,7 @@ def smape(actual, predicted) -> float:
 
 	return  np.mean(
 			np.abs(predicted - actual) /
-			((np.abs(predicted) + np.abs(actual))/2)
+			(((np.abs(predicted) + np.abs(actual))/2)+0.0000000001)
 		)
 
 smape_score = make_scorer(smape)

@@ -17,15 +17,25 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 from sklearn.cluster import HDBSCAN
 from utils.utils import non_zero_floor_division, smape_score
+import os
+import csv
 
-# loader = load_concrete_strength
+import datetime
+
+
+now = datetime.datetime.now()
+day = now.strftime("%Y%m%d")
+
+techniques = [MLPRegressor(), KNeighborsRegressor(), XGBRegressor()]
 
 for loader in [
     load_concrete_strength,
-               load_boston,
+    load_boston,
     load_airfoil,
     load_bioav
 ]:
@@ -40,7 +50,7 @@ for loader in [
     #     covariance_matrix=torch.eye(int(real_space.shape[1]/4))).sample([real_space.shape[0]])
 
     real_res = []
-    for tech in [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()]:
+    for tech in techniques:
         real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = smape_score, cv = 5))
 
     real_res = torch.mean(torch.from_numpy(np.array(real_res)))
@@ -81,12 +91,25 @@ for loader in [
         generator.solve(real_space,
                 real_res,
                 latent_space,
-                [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
+                techniques,
                 HDBSCAN(),
+                max_depth= 17,
                 generations=100,
                 elitism=True,
                 dataset_name=dataset,
-                log=2,
-                log_path = 'log/third_experiment.csv',
+                log=1,
+                log_path = f'log/evolution_{day}.csv',
                 verbose=1,
                 n_jobs = -1)
+
+        if generator.log > 0:
+
+            path = f'log/final_{day}.csv'
+            if not os.path.isdir(os.path.dirname(path)):
+                os.mkdir(os.path.dirname(path))
+            with open(path, "a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([seed, dataset] + [individual.representations for individual in generator.elites])
+
+            [individual.predict(latent_space).to_csv(f'log/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
+
