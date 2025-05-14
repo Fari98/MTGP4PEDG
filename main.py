@@ -27,6 +27,10 @@ import csv
 
 import datetime
 
+from warnings import simplefilter
+from sklearn.exceptions import ConvergenceWarning
+simplefilter("ignore", category=ConvergenceWarning)
+
 
 now = datetime.datetime.now()
 day = now.strftime("%Y%m%d")
