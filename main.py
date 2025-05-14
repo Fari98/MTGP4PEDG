@@ -12,6 +12,7 @@ import torch
 import random
 import numpy as np
 from tree.tree import Tree
+import pandas as pd
 
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
@@ -114,5 +115,5 @@ for loader in [
 
             if not os.path.isdir(f'log/{day}'):
                 os.mkdir(f'log/{day}')
-            [individual.predict(latent_space).to_csv(f'log/{day}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
+            [pd.DataFrame(individual.predict(latent_space)).to_csv(f'log/{day}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
 
