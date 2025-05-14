@@ -33,7 +33,10 @@ import datetime
 now = datetime.datetime.now()
 day = now.strftime("%Y%m%d")
 
-techniques = [MLPRegressor(), KNeighborsRegressor(), XGBRegressor()]
+techniques = [MLPRegressor(), KNeighborsRegressor(),
+              RandomForestRegressor(),
+    # XGBRegressor(device = 'cpu'),
+              ]
 
 for loader in [
     load_concrete_strength,
