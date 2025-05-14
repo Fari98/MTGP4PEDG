@@ -111,5 +111,6 @@ for loader in [
                 writer = csv.writer(file)
                 writer.writerow([seed, dataset] + [individual.representations for individual in generator.elites])
 
-            [individual.predict(latent_space).to_csv(f'log/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
+            os.mkdir(os.path.dirname(f'log/{day}'))
+            [individual.predict(latent_space).to_csv(f'log/{day}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
 
