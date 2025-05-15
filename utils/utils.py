@@ -4,6 +4,9 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import make_scorer
 from sklearn.utils._testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score
 import torch
 
 def get_pareto_rankings(population):
@@ -112,7 +115,7 @@ def calculate_crowding_distances(population):
                 if front_individuals[i].crowding_distance != float('inf'):
                     front_individuals[i].crowding_distance += distance
 
-@ignore_warnings(category=ConvergenceWarning)
+# @ignore_warnings(category=ConvergenceWarning)
 def evaluate_dataset(real_space, real_res, synthetic_space, learning_techniques, clustering_technique, return_full_results = False):
 
 
@@ -122,13 +125,16 @@ def evaluate_dataset(real_space, real_res, synthetic_space, learning_techniques,
     # real_res = torch.mean(real_results)
 
     # StratifiedKFold(n_splits=5, shuffle=True) #to change across runs, otherwise fixed
-    synthetic_results = torch.from_numpy(np.array([cross_val_score(tech, synthetic_space[:, :-1], synthetic_space[:, -1], cv=5,
-                                                                  scoring=smape_score
+    synthetic_results = torch.from_numpy(np.array([cross_val_score(tech,
+                                                                StandardScaler().fit_transform(synthetic_space[:, :-1]),
+                                                                synthetic_space[:, -1],
+                                                                scoring=bounded_r2_score,
+                                                                cv = KFold(n_splits=5)
                                                                   ) for tech in learning_techniques]))
 
-    syn_res = torch.mean(synthetic_results)
+    syn_res = torch.mean(synthetic_results, dim = 1)
 
-    inutility = torch.abs(torch.sub(syn_res, real_res)).item()
+    inutility = torch.mean(torch.abs(torch.sub(syn_res, real_res))).item()
 
     complete_dataset = torch.concatenate(
         (torch.concatenate((synthetic_space, torch.zeros((synthetic_space.shape[0], 1))), dim=1),
@@ -215,10 +221,16 @@ def smape(actual, predicted) -> float:
 
 	return  np.mean(
 			np.abs(predicted - actual) /
-			(((np.abs(predicted) + np.abs(actual))/2)+0.0000000001)
+			(((np.abs(predicted) + np.abs(actual))/2)) #+0.0000000001
 		)
 
 smape_score = make_scorer(smape)
+
+def bounded_r2(actual, predicted):
+    score = r2_score(actual, predicted)
+    return score if score > -1 else -1.0
+
+bounded_r2_score = make_scorer(bounded_r2)
 
 
 

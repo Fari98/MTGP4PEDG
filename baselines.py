@@ -12,8 +12,14 @@ import random
 from datasets.data_loader import load_concrete_strength, load_bioav, load_airfoil, load_boston
 from sklearn.model_selection import cross_val_score
 from xgboost import XGBRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import KFold
+from utils.utils import smape_score, bounded_r2_score
+from sklearn.preprocessing import StandardScaler
 
-smape_score = make_scorer(smape)
+
+
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -22,7 +28,7 @@ random.seed(0)
 results = {}
 for loader in [
     load_concrete_strength,
-               load_boston,
+    load_boston,
     load_airfoil,
     load_bioav
 ]:
@@ -48,24 +54,33 @@ for loader in [
 
     random_space = sample_with_constant_handling(real_space)
 
-    real_res = []
-    for tech in [RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()]:
-        real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = smape_score, cv = 5))
+    techniques = [
+                  MLPRegressor(max_iter=2000, random_state=0),
+                  KNeighborsRegressor(),
+                  RandomForestRegressor(random_state=0),
+                  XGBRegressor(device='cpu', random_state=0)
+                 ]
 
-    real_res = torch.mean(torch.from_numpy(np.array(real_res)))
+    real_results = []
+    for tech in techniques:
+        real_results.append(cross_val_score(tech, StandardScaler().fit_transform(real_space[:,:-1]), real_space[:, -1],
+                                        scoring = bounded_r2_score,
+                                        cv = KFold(n_splits=5)))
+
+    real_res = torch.mean(torch.from_numpy(np.array(real_results)), dim = 1)
 
 
     max_utility = evaluate_dataset(real_space=real_space,
                             synthetic_space=real_space,
-                            learning_techniques=[RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
+                            learning_techniques=techniques,
                             clustering_technique=HDBSCAN(),
-                                   real_res = real_res)
+                            real_res = real_res)
 
     max_da = evaluate_dataset(real_space=real_space,
                             synthetic_space=random_space,
-                            learning_techniques=[RandomForestRegressor(), DecisionTreeRegressor(), XGBRegressor()],
+                            learning_techniques=techniques,
                             clustering_technique=HDBSCAN(),
-                              real_res = real_res)
+                            real_res = real_res)
 
     results[loader.__name__.split("load_")[-1]] = [max_utility, max_da]
 

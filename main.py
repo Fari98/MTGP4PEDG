@@ -33,15 +33,15 @@ import datetime
 now = datetime.datetime.now()
 day = now.strftime("%Y%m%d")
 
-techniques = [MLPRegressor(), KNeighborsRegressor(),
-              RandomForestRegressor(),
-    # XGBRegressor(device = 'cpu'),
+techniques = [MLPRegressor(random_state=0), KNeighborsRegressor(),
+              RandomForestRegressor(random_state=0),
+                XGBRegressor(device = 'cpu', random_state=0)
               ]
 
 for loader in [
-    load_concrete_strength,
-    load_boston,
-    load_airfoil,
+    # load_concrete_strength,
+    # load_boston,
+    # load_airfoil,
     load_bioav
 ]:
 
