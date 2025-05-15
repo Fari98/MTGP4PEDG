@@ -20,9 +20,10 @@ from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.cluster import HDBSCAN
-from utils.utils import non_zero_floor_division, smape_score
+from utils.utils import non_zero_floor_division, smape_score, bounded_r2_score
 import os
 import csv
 
@@ -33,7 +34,7 @@ import datetime
 now = datetime.datetime.now()
 day = now.strftime("%Y%m%d")
 
-techniques = [MLPRegressor(random_state=0),
+techniques = [MLPRegressor(max_iter = 2000, random_state=0),
               KNeighborsRegressor(),
               RandomForestRegressor(random_state=0),
               XGBRegressor(device = 'cpu', random_state=0)
@@ -57,7 +58,8 @@ for loader in [
 
     real_res = []
     for tech in techniques:
-        real_res.append(cross_val_score(tech, real_space[:,:-1], real_space[:, -1], scoring = smape_score, cv = 5))
+        real_res.append(cross_val_score(tech, StandardScaler().fit_transform(real_space[:,:-1]), real_space[:, -1],
+                                        scoring = bounded_r2_score, cv = 5))
 
     real_res = torch.mean(torch.from_numpy(np.array(real_res)))
 
