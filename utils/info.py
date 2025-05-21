@@ -1,5 +1,6 @@
 import os
 import csv
+from filelock import FileLock
 
 
 def get_log_info(optimizer, log):
@@ -51,9 +52,12 @@ def logger(
     """
     if not os.path.isdir(os.path.dirname(path)):
         os.mkdir(os.path.dirname(path))
-    with open(path, "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(run_info + [seed, generation, timing])
+
+    lock_path = path + '.lock'
+    with FileLock(lock_path):
+        with open(path, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(run_info + [seed, generation, timing])
         
 def verbose_reporter(
         dataset, generation, obj1, obj12, timing

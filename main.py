@@ -16,7 +16,7 @@ import pandas as pd
 
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
+# from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
@@ -37,20 +37,22 @@ day = now.strftime("%Y%m%d")
 techniques = [MLPRegressor(max_iter = 2000, random_state=0),
               KNeighborsRegressor(),
               RandomForestRegressor(random_state=0),
-              XGBRegressor(device = 'cpu', random_state=0)
+              # XGBRegressor(device = 'cpu', random_state=0)
               ]
 
-for loader in [
+loaders = [
     load_concrete_strength,
     load_boston,
     load_airfoil,
     load_bioav
-]:
+]
+#
+seeds = 5
+
+def _run(seed, loader):
 
     real_space = torch.from_numpy(loader(X_y=False).values)
     dataset = loader.__name__.split("load_")[-1]
-
-
 
     # latent_space = torch.distributions.multivariate_normal.MultivariateNormal(
     #     loc=torch.zeros(int(real_space.shape[1]/4)),
@@ -63,7 +65,7 @@ for loader in [
 
     real_res = torch.mean(torch.from_numpy(np.array(real_res)))
 
-    for seed in range(5):
+    for rc in [True, False]:
 
         torch.manual_seed(seed)
         np.random.seed(seed)
@@ -92,7 +94,7 @@ for loader in [
                 crossover = uniform_crossover,
                 p_m=0.2,
                 p_xo=0.8,
-                pop_size=20,
+                pop_size=50,
                 seed=seed)
 
 
@@ -104,22 +106,23 @@ for loader in [
                 max_depth= 17,
                 generations=100,
                 elitism=True,
+                remove_copies= rc,
                 dataset_name=dataset,
                 log=1,
-                log_path = f'log/evolution_{day}.csv',
+                log_path = f'log/evolution_{day}_{rc}.csv',
                 verbose=1,
-                n_jobs = -2)
+                n_jobs = -1)
 
         if generator.log > 0:
 
-            path = f'log/final_{day}.csv'
+            path = f'log/final_{day}_{rc}.csv'
             if not os.path.isdir(os.path.dirname(path)):
                 os.mkdir(os.path.dirname(path))
             with open(path, "a", newline="") as file:
                 writer = csv.writer(file)
                 writer.writerow([seed, dataset] + [individual.representations for individual in generator.elites])
 
-            if not os.path.isdir(f'log/{day}'):
-                os.mkdir(f'log/{day}')
-            [pd.DataFrame(individual.predict(latent_space)).to_csv(f'log/{day}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
+            if not os.path.isdir(f'log/{day}_{rc}'):
+                os.mkdir(f'log/{day}_{rc}')
+            [pd.DataFrame(individual.predict(latent_space)).to_csv(f'log/{day}_{rc}/{dataset}_{seed}_{i}.csv') for i, individual in enumerate(generator.elites)]
 

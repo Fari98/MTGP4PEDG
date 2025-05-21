@@ -3,6 +3,7 @@ import time
 import numpy as np
 import torch
 
+from utils.utils import find_duplicate_indexes
 from utils.info import logger, verbose_reporter, get_log_info
 
 from population.population import Population
@@ -47,6 +48,7 @@ class MTGP4SDG:
         max_depth = 17,
         generations=20,
         elitism=True,
+        remove_copies = False,
         dataset_name=None,
         log=0,
         log_path = None,
@@ -142,6 +144,31 @@ class MTGP4SDG:
                                      learning_techniques, clustering_technique,
                                      full_results=(log == 2),
                                      n_jobs=n_jobs)
+
+            if remove_copies:
+                idxs = find_duplicate_indexes(self.population.fitness_values)
+
+                new_inds = self.initializer(len(idxs))
+                replacement_map = dict(zip(idxs, new_inds))
+
+                new_population = [self.population.individuals[i] if i not in new_inds
+                                  else replacement_map[i]
+                                  for i in range(self.population.size)]
+
+                new_population = Population(new_population)
+                # replacing the population with the offspring population (P = P')
+                self.population = new_population
+
+                if elitism:
+                    [individual.__setattr__('front', None) for individual in self.population.individuals]
+
+                self.population.evaluate(real_space, real_res,
+                                         latent_space,
+                                         learning_techniques, clustering_technique,
+                                         full_results=(log == 2),
+                                         n_jobs=n_jobs)
+
+
 
             # getting the new elite(s)
             self.elites = self.population.find_elites()
