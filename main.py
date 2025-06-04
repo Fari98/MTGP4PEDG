@@ -1,4 +1,4 @@
-from MTGP4SDG import MTGP4SDG
+from MTGP4SDG import MTGP4PSDG
 from population.initializers import initialize_multitree_population
 from tree.initializers import rhh
 from individual.crossover_operators import uniform_crossover
@@ -50,7 +50,7 @@ Tree.FUNCTIONS = FUNCTIONS
 Tree.TERMINALS = TERMINALS
 Tree.CONSTANTS = CONSTANTS
 
-generator = MTGP4SDG(initialize_multitree_population(individual_size = real_space.shape[1],
+generator = MTGP4PSDG(initialize_multitree_population(individual_size = real_space.shape[1],
                                     initial_depth = 6,
                                     technique = rhh,
                                     FUNCTIONS = FUNCTIONS,
