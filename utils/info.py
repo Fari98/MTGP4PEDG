@@ -22,6 +22,38 @@ def get_log_info(optimizer, log):
         return base_log + [[individual.representations for individual in optimizer.elites]]
 
 
+def base_logger(
+    path: str,
+    row : list
+) -> None:
+    """
+    Logs information into a CSV file.
+
+    Parameters
+    ----------
+    path : str
+        Path to the CSV file.
+    generation : int
+        Current generation number.
+    timing : float
+        Time taken for the process.
+    run_info : list, optional
+        Information about the run. Defaults to None.
+    seed : int, optional
+        The seed used in random, numpy, and torch libraries. Defaults to 0.
+
+    Returns
+    -------
+    None
+    """
+    if not os.path.isdir(os.path.dirname(path)):
+        os.mkdir(os.path.dirname(path))
+
+    lock_path = path + '.lock'
+    with FileLock(lock_path):
+        with open(path, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(row)
 
 def logger(
     path: str,

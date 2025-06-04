@@ -13,7 +13,7 @@ from scipy.optimize import rosen
 import numpy as np
 import math
 from sklearn.preprocessing import MinMaxScaler
-
+import pandas as pd
 
 def get_pareto_rankings(population):
     """
@@ -351,31 +351,39 @@ def create_random_matrix(n, m, ranges):
 
 def create_dataset(rows, columns, function, seed):
 
-    np.random.seed(seed)
 
-    functions = {'rastrigin' : rastrigin,
-                 'sphere' : sphere,
-                 'rosenbrock' : scipy.optimize.rosen,
-                 'ackley' : ackley,
-                 'alpine1' : alpine_1,
-                 'alpine2' : alpine_2,
-                 'michalewicz' : michalewicz
-                 }
 
-    if function not in functions.keys():
-        raise ValueError('Invalid function')
+    def creator(X_y):
 
-    if function == 'rastrigin':
-        X = create_random_matrix(rows, columns, [(-5.12, 5.12) for _ in range(columns)])
+        creator.__name__ = function
 
-    elif function == 'alpine2':
-        X = create_random_matrix(rows, columns, [(0, 10) for _ in range(columns)])
-    else:
-        X = create_random_matrix(rows, columns, [(-10,10) for _ in range(columns)])
+        np.random.seed(seed)
 
-    if function == 'rosenbrock':
-        y = functions[function](X.T).reshape(-1, 1)
-    else:
-        y = functions[function](X).reshape(-1, 1)
+        functions = {'rastrigin' : rastrigin,
+                     'sphere' : sphere,
+                     'rosenbrock' : scipy.optimize.rosen,
+                     'ackley' : ackley,
+                     'alpine1' : alpine_1,
+                     'alpine2' : alpine_2,
+                     'michalewicz' : michalewicz
+                     }
 
-    return X, y.flatten()
+        if function not in functions.keys():
+            raise ValueError('Invalid function')
+
+        if function == 'rastrigin':
+            X = create_random_matrix(rows, columns, [(-5.12, 5.12) for _ in range(columns)])
+
+        elif function == 'alpine2':
+            X = create_random_matrix(rows, columns, [(0, 10) for _ in range(columns)])
+        else:
+            X = create_random_matrix(rows, columns, [(-10,10) for _ in range(columns)])
+
+        if function == 'rosenbrock':
+            y = functions[function](X.T).reshape(-1, 1)
+        else:
+            y = functions[function](X).reshape(-1, 1)
+
+        return pd.DataFrame(np.concatenate((X, y), axis = 1))
+
+    return creator
