@@ -10,7 +10,7 @@ from population.population import Population
 
 
 
-class MTGP4SDG:
+class MTGP4PSDG:
     def __init__(
         self,
         initializer,
